@@ -7,8 +7,12 @@ import tensorflow as tf
 from fastapi import FastAPI
 from datetime import datetime, timedelta
 
-model = tf.keras.models.load_model("best_model.h5")
-scaler = joblib.load("scaler.pkl")
+
+model_path = os.path.join(os.getcwd(), "best_model.h5")
+scaler_path = os.path.join(os.getcwd(), "scaler.pkl") 
+
+model = tf.keras.models.load_model(model_path)
+scaler = joblib.load(scaler_path)
 
 load_dotenv()
 apikey = os.getenv("API_KEY")
