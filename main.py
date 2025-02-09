@@ -9,7 +9,7 @@ from datetime import datetime, timedelta
 
 
 try:
-    model_path = os.path.join(os.getcwd(), "best_model.h5")
+    model_path = os.path.join(os.getcwd(), "best_model.keras")
     model = tf.keras.models.load_model(model_path)
 except Exception as e:
     print(f"Error loading model: {e}")
