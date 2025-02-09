@@ -8,8 +8,13 @@ from fastapi import FastAPI
 from datetime import datetime, timedelta
 
 
-model_path = os.path.join(os.getcwd(), "best_model.h5")
-scaler_path = os.path.join(os.getcwd(), "scaler.pkl") 
+try:
+    model_path = os.path.join(os.getcwd(), "best_model.h5")
+except Exception as e:
+    print(f"Error loading model: {e}")
+    exit(1)
+
+scaler_path = os.path.join(os.getcwd(), "scaler.pkl")
 
 model = tf.keras.models.load_model(model_path)
 scaler = joblib.load(scaler_path)
