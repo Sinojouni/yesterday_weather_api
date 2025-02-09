@@ -8,16 +8,9 @@ from fastapi import FastAPI
 from datetime import datetime, timedelta
 
 
-try:
-    model_path = os.path.join(os.getcwd(), "best_model.h5")
-except Exception as e:
-    print(f"Error loading model: {e}")
-    exit(1)
-
+model_path = os.path.join(os.getcwd(), "best_model.h5")
 scaler_path = os.path.join(os.getcwd(), "scaler.pkl")
 
-model = tf.keras.models.load_model(model_path)
-scaler = joblib.load(scaler_path)
 
 load_dotenv()
 apikey = os.getenv("API_KEY")
@@ -63,6 +56,8 @@ def fetch_last_24_hours_weather():
 @app.get("/predict")
 def predict_weather():
     try:
+        model = tf.keras.models.load_model(model_path)
+        scaler = joblib.load(scaler_path)
         weather_data = fetch_last_24_hours_weather()
         if weather_data["status"] == "error":
             return {"status": "error"}
