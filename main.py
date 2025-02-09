@@ -1,13 +1,14 @@
-import requests
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 import os
-from dotenv import load_dotenv
+import requests
 import numpy as np
 import joblib
 import tensorflow as tf
-from fastapi import FastAPI
+from dotenv import load_dotenv
 from datetime import datetime, timedelta
 
-
+# Load Model
 try:
     model_path = os.path.join(os.getcwd(), "best_model.keras")
     model = tf.keras.models.load_model(model_path)
@@ -23,9 +24,16 @@ apikey = os.getenv("API_KEY")
 
 app = FastAPI()
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["https://jouni-weather.netlify.app/"],
+    allow_credentials=True,
+    allow_methods=["GET", "OPTIONS"],
+    allow_headers=["*"],
+)
+
 def fetch_last_24_hours_weather():
     base_url = "https://api.weatherapi.com/v1/history.json"
-
     latitude, longitude = 33.88, 35.48
     yesterday = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
 
@@ -58,7 +66,6 @@ def fetch_last_24_hours_weather():
         return {"status": "error", "message": f"Failed to fetch data. Status code: {response.status_code}"}
 
 
-
 @app.get("/predict")
 def predict_weather():
     try:
@@ -68,22 +75,23 @@ def predict_weather():
 
         X_input = np.array([[d["temp"], d["pressure"], d["humidity"], d["clouds"], d["wind_speed"], d["wind_deg"]] for d in weather_data["data"]])
         X_input = scaler.transform(X_input).reshape(1, 24, 6)
+        
         for i in range(24):
             today_pred = model.predict(X_input)
             X_input = X_input[:, 1:, :]
             today_pred = today_pred.reshape(1, 1, 6)
             X_input = np.append(X_input, today_pred, axis=1) 
     
-        today_pred_inv=scaler.inverse_transform(X_input[0])
+        today_pred_inv = scaler.inverse_transform(X_input[0])
 
         predictions = [
             {
                 "hour": i,
                 "temperature": round(today_pred_inv[i][0])
-            }for i in range(len(today_pred_inv))
+            } for i in range(len(today_pred_inv))
         ]
 
-        return {"status": "success", "predictions":predictions}
+        return {"status": "success", "predictions": predictions}
 
     except Exception as e:
         return {"status": "error", "message": str(e)}
